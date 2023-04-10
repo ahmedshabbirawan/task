@@ -9,10 +9,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 use Kreait\Firebase\Messaging\CloudMessage;
+use App\Interfaces\BusinessRepositoryInterface;
 
 
 
 class BusinessController extends Controller{
+
+
+    private BusinessRepositoryInterface $businessRepository;
+
+    public function __construct(BusinessRepositoryInterface $businessRepository)
+    {
+        $this->businessRepository = $businessRepository;
+    }
     
 
     /**
@@ -39,10 +48,10 @@ class BusinessController extends Controller{
         try{
 
             DB::beginTransaction();
-            $businessID         = Business::saveBusiness($input);
+            $business = $this->businessRepository->createBusiness($input);
             DB::commit();
-            $request->session()->put('business_id',$businessID->id);
-            return redirect(route('businesses.detail', $businessID));
+            $request->session()->put('business_id',$business->id);
+            return redirect(route('businesses.detail', $business->id));
 
         }catch(\Exception $e){
             DB::rollBack();
@@ -62,7 +71,7 @@ class BusinessController extends Controller{
      */
     public function show($id){
         
-        $business = Business::findOrFail($id);
+        $business = $this->businessRepository->getBusinessById($id);
         $product  = Product::all(); 
         
         return view('business.detail',['business' => $business, 'products' => $product]);
@@ -70,15 +79,7 @@ class BusinessController extends Controller{
 
 
 
-    function sendPush(){
-        
-
-$message = CloudMessage::withTarget(/* see sections below */)
-    ->withNotification(Notification::create('Title', 'Body'))
-    ->withData(['key' => 'value']);
-
-$messaging->send($message);
-    }
+    
 
     
 }

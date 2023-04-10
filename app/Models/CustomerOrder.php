@@ -20,18 +20,22 @@ class CustomerOrder extends Model
 
     
 
-    static function createOrder($data){
-        $data['order_time'] = date('Y-m-d H:i:s');
-        return CustomerOrder::create($data);
-    }
+    // static function createOrder($data){
+    //     $data['order_time'] = date('Y-m-d H:i:s');
+    //     return CustomerOrder::create($data);
+    // }
 
-    static function getCustomerOrderByID($customerID){
-        return CustomerOrder::with(['business','product'])->where('customer_id' , $customerID)->orderBy('id','DESC')->get();
-    }
+    // static function getCustomerOrderByID($customerID){
+    //     return CustomerOrder::with(['business','product'])->where('customer_id' , $customerID)->orderBy('id','DESC')->get();
+    // }
 
 
-    static function getBusinessOrderByID($businessID){
-        return CustomerOrder::with(['business','product','customer'])->where('business_id' , $businessID)->orderBy('id','DESC')->get();
+    // static function getBusinessOrderByID($businessID){
+    //     return CustomerOrder::with(['business','product','customer'])->where('business_id' , $businessID)->orderBy('id','DESC')->get();
+    // }
+
+    static function getBusinessOrderByWhere($where){
+        return CustomerOrder::with(['business','product','customer'])->where($where)->orderBy('id','DESC')->get();
     }
 
     static function dispatchOrder($orderID){

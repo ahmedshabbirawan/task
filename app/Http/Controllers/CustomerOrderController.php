@@ -6,9 +6,21 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CustomerOrderFormRequest;
 use App\Models\CustomerOrder;
 use Illuminate\Http\Request;
+use App\Interfaces\CustomerOrderRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 
 class CustomerOrderController extends Controller{
+
+
+
+    private CustomerOrderRepositoryInterface $customerOrderRepository;
+
+    public function __construct(CustomerOrderRepositoryInterface $customerOrderRepository)
+    {
+        $this->customerOrderRepository = $customerOrderRepository;
+    }
+
+
 
     function place_order(CustomerOrderFormRequest $request){
 
@@ -18,7 +30,7 @@ class CustomerOrderController extends Controller{
 
         try{
             DB::beginTransaction();
-                CustomerOrder::createOrder($data);
+                $this->customerOrderRepository->createCustomerOrder($data);
             DB::commit();
             return response()->json(['ststus' => true, 'message' => 'Place Order succssfully!']);
 
@@ -30,9 +42,9 @@ class CustomerOrderController extends Controller{
 
     function get_customer_orders(Request $request){
 
-        $responseType   = $request->get('res');
-        $customerID     = auth()->user()->id;
-        $orders         = CustomerOrder::getCustomerOrderByID($customerID);
+        $responseType               = $request->get('res');
+        $where['customer_id']       = auth()->user()->id;
+        $orders                     = $this->customerOrderRepository->getCustomerOrderByWhere($where);
 
         if($responseType == 'html'){
             return view('business.sub_views.customer_side_orders',[ 'orders' => $orders ]);
@@ -43,10 +55,10 @@ class CustomerOrderController extends Controller{
 
     function get_business_order(Request $request){
 
-        $responseType   = $request->get('res');
-        $businessID     = $request->session()->get('business_id');
+        $responseType             = $request->get('res');
+        $where['business_id']     = $request->session()->get('business_id');
 
-        $orders = CustomerOrder::getBusinessOrderByID($businessID);
+        $orders                   = $this->customerOrderRepository->getCustomerOrderByWhere($where);
 
         if($responseType == 'html'){
             return view('business.sub_views.owner_side_orders',[ 'orders' => $orders ]);
@@ -58,8 +70,17 @@ class CustomerOrderController extends Controller{
 
     function disatch_order(Request $request){
         $orderID    = $request->get('order_id');
-        $data       = CustomerOrder::dispatchOrder($orderID);
-        return response()->json(['status' => true, 'message' => 'Order Dispatch', 'data' => $data]);
+        try{
+            DB::beginTransaction();
+                    $data = $this->customerOrderRepository->dispatchCustomerOrder($orderID,[]);
+            DB::commit();
+            return response()->json(['status' => true, 'message' => 'Order Dispatch', 'data' => $data]);
+        }catch(\Exception $e){
+            DB::rollBack();
+            return response()->json(['status' => false, 'message' => 'Error.Please Contact Web Admin'. $e->getMessage()], 500);
+        }
+
+
     }
 
 
