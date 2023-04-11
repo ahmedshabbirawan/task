@@ -8,10 +8,13 @@ use App\Models\CustomerOrder;
 use Illuminate\Http\Request;
 use App\Interfaces\CustomerOrderRepositoryInterface;
 use Illuminate\Support\Facades\DB;
+use App\Http\Resources\CustomerOrderResource;
+
+use App\Util\AjaxResponse;
 
 class CustomerOrderController extends Controller{
 
-
+    use AjaxResponse;
 
     private CustomerOrderRepositoryInterface $customerOrderRepository;
 
@@ -30,13 +33,14 @@ class CustomerOrderController extends Controller{
 
         try{
             DB::beginTransaction();
-                $this->customerOrderRepository->createCustomerOrder($data);
+               $data =  $this->customerOrderRepository->createCustomerOrder($data);
             DB::commit();
-            return response()->json(['ststus' => true, 'message' => 'Place Order succssfully!']);
+
+            return $this->sendResponse($data,'Place Order succssfully!' );
 
         }catch(\Exception $e){
             DB::rollBack();
-            return response()->json(['message' => 'Error.Please Contact Web Admin'. $e->getMessage()], 500);
+            return $this->sendError('Error.Please Contact Web Admin', $e->getMessage());
         }
     }
 
@@ -49,7 +53,7 @@ class CustomerOrderController extends Controller{
         if($responseType == 'html'){
             return view('business.sub_views.customer_side_orders',[ 'orders' => $orders ]);
         }else{
-            return response()->json(['ststus' => true, 'data' => $orders]);
+            return $this->sendResponse(  CustomerOrderResource::collection($orders)  , count($orders).' Orders' );
         }
     }
 
@@ -63,7 +67,7 @@ class CustomerOrderController extends Controller{
         if($responseType == 'html'){
             return view('business.sub_views.owner_side_orders',[ 'orders' => $orders ]);
         }else{
-            return response()->json(['ststus' => true, 'data' => $orders]);
+            return $this->sendResponse(CustomerOrderResource::collection($orders), count($orders).' Orders' );
         }
     }
 
@@ -74,10 +78,10 @@ class CustomerOrderController extends Controller{
             DB::beginTransaction();
                     $data = $this->customerOrderRepository->dispatchCustomerOrder($orderID,[]);
             DB::commit();
-            return response()->json(['status' => true, 'message' => 'Order Dispatch', 'data' => $data]);
+            return $this->sendResponse($data, count($data).' Orders' );
         }catch(\Exception $e){
             DB::rollBack();
-            return response()->json(['status' => false, 'message' => 'Error.Please Contact Web Admin'. $e->getMessage()], 500);
+            return $this->sendError('Error.Please Contact Web Admin', $e->getMessage());
         }
 
 

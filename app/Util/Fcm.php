@@ -35,22 +35,13 @@ class Fcm{
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
-                
-            $response = curl_exec($ch);
 
-            if( $response != '' ){
-                $data = json_decode($response);
-                if( isset($data->success) && $data->success != 1){
-                    return false;
-                }else{
-                    return true;
-                }
+            $response = json_decode(curl_exec($ch));
+            if ($response->success == 1) {
+                return true;
+            }else{
+                return false;
             }
-
-            return false;
-    
-            // return $response;
-
         }catch(\Exception $e){
             return false;
         }

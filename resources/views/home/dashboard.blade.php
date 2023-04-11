@@ -127,6 +127,9 @@ function initMap() {
 
 
   var locations = JSON.parse('<?= json_encode($business) ?>');
+
+  var burl = "{{ url('business-detail') }}";
+
   $( locations ).each(function(index, obj){
     addMarker({
                 coordinates: {
@@ -135,7 +138,7 @@ function initMap() {
                 },
                 location_id:{'loc_id' :obj.id, 'loc_name' : obj.name +', '+ obj.address},
                 iconImage: '',
-                content: obj.name
+                content: "<div style='max-width: 100px;' > <b>"+obj.name+"<b> <br> "+obj.address+" <br> <a href='"+burl+"/"+obj.id+"' class='' target='_blank' >Goto</a> </div>"
               });
         
 
