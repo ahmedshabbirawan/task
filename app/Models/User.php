@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
@@ -40,8 +41,15 @@ class User extends Authenticatable
 
 
     static function updateUserDeviceToken($userID, $deviceToken){
-        $user = self::find($userID);
-        return $user->update([ 'device_token' => $deviceToken ]);
+        try{
+            DB::beginTransaction();
+                $user = self::find($userID);
+                $user->update($deviceToken);
+            DB::commit();
+            return $user;
+        }catch(\Exception $e){
+            return $e->getMessage();
+        }
     }
 
 

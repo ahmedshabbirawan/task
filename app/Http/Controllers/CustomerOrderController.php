@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Resources\CustomerOrderResource;
 
 use App\Util\AjaxResponse;
+use Exception;
 
 class CustomerOrderController extends Controller{
 
@@ -30,21 +31,21 @@ class CustomerOrderController extends Controller{
 
         $data                   = $request->only(['product_id', 'business_id']);
         $data['customer_id']    = auth()->user()->id;
+        $obj = $this->customerOrderRepository->createCustomerOrder($data);
 
-        try{
-            DB::beginTransaction();
-               $data =  $this->customerOrderRepository->createCustomerOrder($data);
-            DB::commit();
-
+        if($obj instanceof CustomerOrder){
             return $this->sendResponse($data,'Place Order succssfully!' );
+        }elseif($obj instanceof Exception){
+            return redirect(route('businesses.create'))
+            ->with('error','Error comes please contact with site admin')
+            ->withInput();
+        } 
 
-        }catch(\Exception $e){
-            DB::rollBack();
-            return $this->sendError('Error.Please Contact Web Admin', $e->getMessage());
-        }
+
+
     }
 
-    function get_customer_orders(Request $request){
+    function get_customer_orders(CustomerOrderFormRequest $request){
 
         $responseType               = $request->get('res');
         $where['customer_id']       = auth()->user()->id;
@@ -57,7 +58,7 @@ class CustomerOrderController extends Controller{
         }
     }
 
-    function get_business_order(Request $request){
+    function get_business_order(CustomerOrderFormRequest $request){
 
         $responseType             = $request->get('res');
         $where['business_id']     = $request->session()->get('business_id');
@@ -72,18 +73,17 @@ class CustomerOrderController extends Controller{
     }
 
 
-    function disatch_order(Request $request){
+    function disatch_order(CustomerOrderFormRequest $request){
+        
         $orderID    = $request->get('order_id');
-        try{
-            DB::beginTransaction();
-                    $data = $this->customerOrderRepository->dispatchCustomerOrder($orderID,[]);
-            DB::commit();
-            return $this->sendResponse($data, count($data).' Orders' );
-        }catch(\Exception $e){
-            DB::rollBack();
-            return $this->sendError('Error.Please Contact Web Admin', $e->getMessage());
-        }
+        $obj        = $this->customerOrderRepository->dispatchCustomerOrder($orderID,[]);
 
+        if($obj instanceof CustomerOrder){
+            return $this->sendResponse($obj,'Place dispatch succssfully!' );
+        }else{
+      
+            return $this->sendError('Error.Please Contact Web Admin'. $obj, []);
+        } 
 
     }
 

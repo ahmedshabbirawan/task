@@ -6,22 +6,39 @@ use App\Http\Requests\DeviceTokenFormRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use App\Interfaces\UserRepositoryInterface;
+
+use App\Util\AjaxResponse;
+
 
 class UserController extends Controller{
     
 
+    use AjaxResponse;
+
+    private UserRepositoryInterface $userRepository;
+
+
+    public function __construct(UserRepositoryInterface $userRepository)
+    {
+        $this->userRepository = $userRepository;
+       
+    }
 
     public function saveToken(DeviceTokenFormRequest $request){
         $deviceToken    = $request->get('device_token');
         $userID         = auth()->user()->id;
-        try{
-            DB::beginTransaction();
-                User::updateUserDeviceToken($userID, $deviceToken);
-            DB::commit();
-            return response()->json([ 'status' => true, 'message' => 'token saved successfully.']);
-        }catch(\Exception $e){
-            return response()->json([ 'status' => false, 'message' => 'Error : '.$e->getMessage().'. Please Contact Web Admin']);
+        
+        $obj = $this->userRepository->updateUser($userID, ['device_token' => $deviceToken]);
+
+
+        if($obj instanceof User){
+            return $this->sendResponse($obj,'Token saved successfully.' );
+        }else{
+            return $this->sendError('Error.Please Contact Web Admin'. $obj, []);
         }
+
+      
     }
   
     

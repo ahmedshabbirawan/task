@@ -6,21 +6,24 @@ use App\Http\Requests\BusinessFormRequest;
 use App\Models\Business;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+
 
 use Kreait\Firebase\Messaging\CloudMessage;
 use App\Interfaces\BusinessRepositoryInterface;
-
-
+use App\Interfaces\ProductRepositoryInterface;
+use Exception;
 
 class BusinessController extends Controller{
 
 
     private BusinessRepositoryInterface $businessRepository;
+    private ProductRepositoryInterface $productRepository;
 
-    public function __construct(BusinessRepositoryInterface $businessRepository)
+
+    public function __construct(BusinessRepositoryInterface $businessRepository, ProductRepositoryInterface $productRepository)
     {
         $this->businessRepository = $businessRepository;
+        $this->productRepository  = $productRepository;
     }
     
 
@@ -45,22 +48,17 @@ class BusinessController extends Controller{
         $input              = $request->only(['name','info','address','lat','lng']);
         $input['user_id']   = auth()->user()->id;
 
-        try{
 
-            DB::beginTransaction();
-            $business = $this->businessRepository->createBusiness($input);
-            DB::commit();
-            $request->session()->put('business_id',$business->id);
-            return redirect(route('businesses.detail', $business->id));
+        $obj = $this->businessRepository->createBusiness($input);
 
-        }catch(\Exception $e){
-            DB::rollBack();
+        if($obj instanceof Business){
+            $request->session()->put('business_id',$obj->id);
+            return redirect(route('businesses.detail', $obj->id));
+        }elseif($obj instanceof Exception){
             return redirect(route('businesses.create'))
-            ->with('error', 'Error : '.$e->getMessage().'. Please Contact Web Admin')
+            ->with('error','Error comes please contact with site admin')
             ->withInput();
-        }
-        
-        
+        } 
     }
 
     /**
@@ -72,7 +70,7 @@ class BusinessController extends Controller{
     public function show($id){
         
         $business = $this->businessRepository->getBusinessById($id);
-        $product  = Product::all(); 
+        $product  = $this->productRepository->getAllProducts(); 
         
         return view('business.detail',['business' => $business, 'products' => $product]);
     }

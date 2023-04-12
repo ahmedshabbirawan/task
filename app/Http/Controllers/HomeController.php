@@ -4,16 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Business;
 use Illuminate\Http\Request;
+use App\Interfaces\BusinessRepositoryInterface;
 
 class HomeController extends Controller
 {
+
+    private BusinessRepositoryInterface $businessRepository;
+
+
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct()
-    {
+    public function __construct(BusinessRepositoryInterface $businessRepository){
+        $this->businessRepository = $businessRepository;
         $this->middleware('auth')->except(['home']);
     }
 
@@ -29,7 +34,7 @@ class HomeController extends Controller
 
 
     function home(){
-        $business = Business::all();
+        $business = $this->businessRepository->getAllBusinesses();
         return view('home.dashboard',['business' => $business]);
     }
 

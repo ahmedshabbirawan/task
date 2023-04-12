@@ -23,15 +23,19 @@ class CustomerOrderFormRequest extends FormRequest
      */
     public function rules(){
 
+        $routeName = $this->route()->getName();
+        $rules = [];
+  
+        if($this->isMethod('post')){
+          $rules['product_id']     =  'required';
+          $rules['business_id']    =  'required';
+        }
 
-      //  dd($this->request->all());
-        
-
-        $rules['product_id']     =  'required';
-        $rules['business_id']    =  'required';
-      //   $rules['customer_id']    =  'required';
-     //    $rules['lng']    =  'required';
+        if($routeName == 'order.disatch_order'){
+          $rules['order_id']     =  'required';
+        }
 
         return $rules;
+
     }
 }

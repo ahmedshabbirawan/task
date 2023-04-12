@@ -54,26 +54,6 @@
       });
 
 
-      /*
-      $.ajax({
-          cache: false,
-          contentType: false,
-          processData: false,
-          async: false,
-          type: 'GET',
-          // dataType: "JSON",
-          headers: {
-          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-          },
-          url: "{{ route('order.get_customer_order') }}?res=html",
-          success: function(res, textStatus, jqXHR) {
-            //if (jqXHR.status == 200) {
-              $('#order_body').html(res);
-            //}
-          },
-          error: ajaxFailBlock
-      });
-      */
     }
 
 
@@ -92,26 +72,7 @@
               }
       });
 
-      /*
-      $.ajax({
-          data: formData,
-          cache: false,
-          contentType: false,
-          processData: false,
-          async: false,
-          type: 'POST',
-          dataType: "JSON",
-          headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-          url: "{{ route('order.place_order') }}",
-          success: function(res, textStatus, jqXHR) {
-              if (jqXHR.status == 200) {
-                alert(res.message);
-                getOrders();
-              }
-          },
-          error: ajaxFailBlock
-      });
-      */
+     
     }
 
 

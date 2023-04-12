@@ -234,6 +234,7 @@
       console.log('Message received. ', payload);
       new Notification(payload.notification.title, {'logo' : payload});
       alert(payload.notification.title);
+      
     });
 
     <?php } ?>

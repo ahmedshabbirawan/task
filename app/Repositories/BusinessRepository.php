@@ -3,6 +3,7 @@ namespace App\Repositories;
 
 use App\Interfaces\BusinessRepositoryInterface;
 use App\Models\Business;
+use Illuminate\Support\Facades\DB;
 
 
 class BusinessRepository implements BusinessRepositoryInterface
@@ -19,9 +20,8 @@ class BusinessRepository implements BusinessRepositoryInterface
     {
         Business::destroy($businessId);
     }
-    public function createBusiness(array $businessDetails)
-    {
-        return Business::create($businessDetails);
+    public function createBusiness(array $businessDetails){
+        return Business::saveBusiness($businessDetails);
     }
     public function updateBusiness($businessId, array $newDetails)
     {

@@ -31,7 +31,7 @@ class CustomerOrderRepository implements CustomerOrderRepositoryInterface
   
     public function createCustomerOrder(array $customerOrderDetails)
     {
-        $customerOrderDetails['order_time'] = date('Y-m-d H:i:s');
+        
         return CustomerOrder::create($customerOrderDetails);
     }
 

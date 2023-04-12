@@ -5,12 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Events\OrderDispatch;
-
+use Illuminate\Support\Facades\DB;
 
 
 class CustomerOrder extends Model
 {
     use HasFactory;
+
+    public $orderDispatchPush = false;
 
    
 
@@ -20,10 +22,18 @@ class CustomerOrder extends Model
 
     
 
-    // static function createOrder($data){
-    //     $data['order_time'] = date('Y-m-d H:i:s');
-    //     return CustomerOrder::create($data);
-    // }
+    static function createOrder($data){
+        try{
+            DB::beginTransaction();
+                $data['order_time'] = date('Y-m-d H:i:s');
+                $obj =  self::create($data);
+            DB::commit();
+            return $obj;
+        }catch(\Exception $e){
+            DB::rollBack();
+            return $e->getMessage();
+        }
+    }
 
     // static function getCustomerOrderByID($customerID){
     //     return CustomerOrder::with(['business','product'])->where('customer_id' , $customerID)->orderBy('id','DESC')->get();
@@ -39,16 +49,19 @@ class CustomerOrder extends Model
     }
 
     static function dispatchOrder($orderID){
-        $order = CustomerOrder::find($orderID);
-        $order->dispatch_time = date('Y-m-d H:i:s');
-        $order->save();
-    
-        $event =    OrderDispatch::dispatch($order);
-
-        $eventStatus = (isset($event[0]) && $event[0] == true )?true:false; 
-
-        return ['order' => $order, 'event' => $eventStatus  ];
-        // (isset($event[0]))?$event[0]:$event
+        try{
+            DB::beginTransaction();
+                $order = CustomerOrder::find($orderID);
+                $order->dispatch_time = date('Y-m-d H:i:s');
+                $order->save();
+            DB::commit();
+            $event                      =   OrderDispatch::dispatch($order);
+            $order->orderDispatchPush   =   ( isset($event[0]) )?$event[0]:false; 
+            return $order;
+        }catch(\Exception $e){
+            DB::rollBack();
+            return $e->getMessage();
+        }
     }
 
 
